@@ -1,0 +1,36 @@
+{
+  "name": "nice-table",
+  "version": "1.0.1",
+  "description": "A Node.js `console.table` alternative that does not overflowgt.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "tsc -b"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timvandam/nice-table.git"
+  },
+  "keywords": [
+    "table",
+    "console.table"
+  ],
+  "author": {
+    "name": "Tim van Dam",
+    "email": "timvandamcs@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/timvandam/nice-table/issues"
+  },
+  "homepage": "https://github.com/timvandam/nice-table#readme",
+  "devDependencies": {
+    "@types/node": "^18.0.5",
+    "prettier": "^2.7.1",
+    "typescript": "^4.7.4"
+  }
+}
