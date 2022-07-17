@@ -1,4 +1,5 @@
-import { inspect } from 'util';
+import wrapAnsi from 'wrap-ansi';
+import stringWidth from 'string-width';
 
 export type HorizontalAlignment = 'left' | 'middle' | 'right';
 export type VerticalAlignment = 'top' | 'middle' | 'bottom';
@@ -12,6 +13,7 @@ export type TableOptions = {
   fullWidth: boolean;
   throwIfTooSmall: boolean;
   indexColumn: boolean;
+  stringify: (value: unknown) => string;
 };
 
 export function createTable<T extends object>(
@@ -25,11 +27,12 @@ export function createTable<T extends object>(
     maxWidth = 80,
     indexColumn = false,
     throwIfTooSmall = true,
+    stringify = String,
   }: Partial<TableOptions> = {},
 ): string {
   let columnCount = keys.length;
-  const columnNames = keys.map((key) => key.toString());
-  const tableContent = items.map((item) => keys.map((key) => inspect(item[key])));
+  const columnNames = keys.map((key) => stringify(key));
+  const tableContent = items.map((item) => keys.map((key) => stringify(item[key])));
 
   if (indexColumn) {
     columnNames.unshift('(index)');
@@ -51,8 +54,9 @@ export function createTable<T extends object>(
 
   const availableColumnWidth = maxWidth - columnCount - 1; // each key/column has a │ on the left, and there is one │ at the end of each row
   const averageColumnWidth = Math.floor(availableColumnWidth / columnCount);
-  const columnWidths = columnNames.map((columnName, i) =>
-    Math.max(columnName.length + 2, ...tableContent.map((row) => row[i].length + 2)),
+  const columnWidths = columnNames.map(
+    (columnName, i) =>
+      Math.max(stringWidth(columnName), ...tableContent.map((row) => stringWidth(row[i]))) + 2,
   );
 
   let overflow = columnWidths.reduce((a, b) => a + b, 0) - availableColumnWidth;
@@ -99,7 +103,9 @@ export function createTable<T extends object>(
     createTableColumnNames(columnNames, columnWidths, horizontalAlignment, verticalAlignment),
     createTableRows(tableContent, columnWidths, horizontalAlignment, verticalAlignment),
     createTableBottom(columnWidths),
-  ].join('\n');
+  ]
+    .filter((part) => part.trim().length > 0)
+    .join('\n');
 }
 
 const TOP_LEFT = '┌';
@@ -134,10 +140,11 @@ function createTableBottom(columnWidths: number[]) {
   );
 }
 
-function centerText(text: string, width: number) {
-  text = text.trim();
-  const padding = Math.floor((width - text.length) / 2);
-  return (' '.repeat(padding) + text).padEnd(width, ' ');
+function centerText(str: string, width: number) {
+  const strLength = stringWidth(str);
+  const leftPadding = Math.floor((width - strLength) / 2);
+  const rightPadding = width - strLength - leftPadding;
+  return ' '.repeat(leftPadding) + str + ' '.repeat(rightPadding);
 }
 
 function createRow(
@@ -174,14 +181,11 @@ function createMultiLineRows(
   // Split single cells into multiple cells if they are too long
   for (let i = 0; i < columnWidths.length; i++) {
     const columnWidth = columnWidths[i];
-    let cell = row[i];
-
-    const cellLines: string[] = [];
-    while (cell.length) {
-      cellLines.push(cell.slice(0, columnWidth - 2)); // -2 for the left and right padding
-      cell = cell.slice(columnWidth - 2);
-    }
-
+    const cellLines = wrapAnsi(row[i], columnWidth - 2, {
+      hard: true,
+      trim: true,
+      wordWrap: true,
+    }).split('\n');
     cells.push(cellLines);
     rowHeight = Math.max(rowHeight, cellLines.length);
   }

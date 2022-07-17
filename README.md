@@ -1,5 +1,5 @@
 # nice-table
-A Node.js `console.table` alternative that does not overflow.
+A non-overflowing `console.table` alternative with customization options.
 
 ## Usage
 ```ts
@@ -36,20 +36,33 @@ console.log(
 // ┌────────────────────────────────────────────────────┬─────┐
 // │                        name                        │ age │
 // ├────────────────────────────────────────────────────┼─────┤
-// │                       'John'                       │ 30  │
-// │                       'Jane'                       │ 25  │
-// │                       'Joe'                        │ 20  │
-// │ 'Pablo Diego José Francisco de Paula Juan Nepomuce │     │
-// │ no María de los Remedios Cipriano de la Santísima  │ 141 │
-// │              Trinidad Ruiz y Picasso'              │     │
+// │                        John                        │ 30  │
+// │                        Jane                        │ 25  │
+// │                        Joe                         │ 20  │
+// │      Pablo Diego José Francisco de Paula Juan      │     │
+// │  Nepomuceno María de los Remedios Cipriano de la   │ 141 │
+// │         Santísima Trinidad Ruiz y Picasso          │     │
 // └────────────────────────────────────────────────────┴─────┘
+```
+
+### Colored Output
+```ts
+import * as util from 'node:util';
+
+// ...
+
+console.log(
+    createTable<Person>(myData, ['name', 'age'], {
+        stringify: (value: unknown) => util.inspect(value, { colors: true }),
+    }),
+);
 ```
 
 ## Options
 ### `maxWidth`
 The maximum width of the table.
 This width will never be exceeded by the table.
-Can be set to `process.stdout.columns` to use the terminal width in Node.JS.
+Can be set to `process.stdout.columns` to use the terminal width in Node.js.
 
 Defaults to `80`.
 
@@ -88,3 +101,9 @@ Defaults to `true`.
 Whether to include an index column.
 
 Defaults to `false`.
+
+### `stringify`
+A function converts values into strings before they are is displayed.
+ANSI codes are supported, so colored input can be achieved as shown in [Colored Output](#colored-output).
+
+Defaults to `String`.
